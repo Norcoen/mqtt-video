@@ -37,6 +37,7 @@ class VideoRelay( threading.Thread ):
         threading.Thread.__init__(self)
         self.daemon = True
         self.url = url
+        self.stats_file = "/tmp/stats_"+str(id(self.url))
         self.client = client
         self.topic = topic
         self.vpr, self.vpw = os.pipe()
@@ -51,10 +52,15 @@ class VideoRelay( threading.Thread ):
         os.write(self.cmd_w,'x')
 
     def run(self):
+        
+        #todo
+        #  set pixel format.
         cmdfmt = \
-           "ffmpeg -nostdin -y -loglevel -8 -i %(url)s "+\
+           "ffmpeg -nostdin -y -loglevel -8 -i %(url)s  "+\
            " -vf scale=320:240 -c:v libx264 -x264-params  keyint=30:no-scenecut "+\
-           "  -profile:v baseline -level 3.0  -b 192k "+\
+           "  -profile:v baseline -level 3.0  -b 192k  "+\
+           "  -pix_fmt yuv420p "+\
+           "  -vstats -vstats_file %(stats_file)s  "+\
            " -movflags empty_moov+default_base_moof+frag_keyframe "+\
            " -f mp4 pipe:%(vpw)d  "
 
@@ -64,32 +70,45 @@ class VideoRelay( threading.Thread ):
 
         self.proc = subprocess.Popen(shlex.split(cmd))
         vbuffer = ""
+        stats_text = ""
+        iframe_count = 0
+        
 
         while self.running:
             for (fd,evt) in self.plist.poll(5000):
-                print fd, evt 
                   
                 if (fd == self.cmd_r) and (evt & select.POLLIN):
                     x = os.read(self.cmd_r,1)
                     self.proc.terminate()
                     self.running = False
+
+ 
                 elif (fd == self.vpr) and (evt & select.POLLIN):
                     chunk = os.read(self.vpr,1000000)
-
-                    print "read ",len(chunk), "bytes"
-
                     vbuffer += chunk
-                    # Wait until we have 2 complete frames 
-                    #if vbuffer.count('moof') < 2:
-                    if len(vbuffer) < 100000:
-                        continue 
+                     
+                    print "received ",len(chunk)," vbuffer size ",len(vbuffer)
 
+                    if iframe_count > 1:
+                        chunk = vbuffer
+                        vbuffer = ""
 
-                    chunk = vbuffer
-                    vbuffer = ""
-                            
-                    n = self.client.publish(self.topic,payload=bytearray(chunk))
-                    print( "sending ", len(chunk), " bytes to ",self.topic )  
+                        self.client.publish(self.topic,payload=bytearray(chunk))
+                        print( "sending ", len(chunk), " bytes to ",self.topic )
+                        iframe_count = 0
+
+                    # check the stats for an I frame after we have enqueued inbound
+                    # video. increase iframe counter if an I frame is detected.  
+                    if os.access(self.stats_file, os.F_OK):
+                        f = open(self.stats_file,'rw+')
+                        for line in f.readlines():
+                            ftype = line.split()[-1]      
+                            if ftype == 'I':
+                                print "detected i frame"
+                                iframe_count += 1
+                                break
+                        f.truncate()
+                        f.close()
 
         print "existing feed thread"
 
