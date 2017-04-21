@@ -1,0 +1,27 @@
+<html>
+   <script src="jquery.min.js"></script>
+   <script src="mqttws31.js"></script>
+   <script src="mqttVideoClient.js"></script>
+  <script>
+function main(){
+  mqtt_video("v1", function(msg){
+      console.log(msg);
+  });
+} 
+  </script>       
+
+
+<body onload="main()">
+ <video 
+   data-url="rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"
+   data-play="true"
+   autoplay
+   id="v1"
+   controls
+ ></video>
+ <hr>
+ <button id="start">Start Playing</button>
+
+
+</body>
+</html>
