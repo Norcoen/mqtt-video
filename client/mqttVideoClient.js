@@ -314,22 +314,35 @@ function _onMqttConnected(self){
     // feeds when the client exits    
     _publish(self.TOPICS.REGISTER, {clientId: self.clientId});
 
+    $('#stop').click(function(){
+        _publish(self.TOPICS.STOP, {
+            url: self.url
+        }); 
+        _unregister_cb(self, self.TOPICS.PLAY); 
+        if ( self.sourceBuffer !== null ) {       
+            self.sourceBuffer.abort();
+        }
+        $('#v1').attr('poster','');
+    });
+
     // assign callback for start button
     $('#start').click(function(){ 
+        $('#v1').attr('poster','loading.gif');
+        self.url = $('#url').val();
 
-       var resp_topic = "client/describe/response_" + parseInt(Math.random() * 1000000000);
-       // handle response to describe
+        var resp_topic = "client/describe/response_" + parseInt(Math.random() * 1000000000);
+        // handle response to describe
        
-       // handle the server reply 
-       _register_cb(self, resp_topic, _onDescribe);
+        // handle the server reply 
+        _register_cb(self, resp_topic, _onDescribe);
        
-       // ask media server to describe the mime type for this
-       // url.
-       _publish(self.TOPICS.DESCRIBE, {
+        // ask media server to describe the mime type for this
+        // url.
+        _publish(self.TOPICS.DESCRIBE, {
             clientId: self.clientId,
             url: self.url,
             resp_topic: resp_topic   
-       });
+        });
 
     });
     
@@ -439,7 +452,7 @@ function mqtt_video( eid, handler ) {
     self.stats = {
         count: 0
     };
-
+    self.sourceBuffer = null;   
     self.MAX_VQ_LENGTH = 60;
    
     // error numbers
@@ -454,7 +467,8 @@ function mqtt_video( eid, handler ) {
         UNREGISTER: "client/unregister",
         REGISTER: "client/register",
         DESCRIBE: "client/describe",
-        PLAY: "client/play" 
+        PLAY: "client/play",
+        STOP: "client/stop" 
     }; 
     // setup mqtt if not already done.
     _wv_mqtt_setup( self );

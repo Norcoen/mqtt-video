@@ -48,7 +48,7 @@ class VideoRelay( threading.Thread ):
 
         
     def stop(self):
-        os.write('x',self.cmd_w)
+        os.write(self.cmd_w,'x')
 
     def run(self):
         cmdfmt = \
@@ -71,6 +71,7 @@ class VideoRelay( threading.Thread ):
                   
                 if (fd == self.cmd_r) and (evt & select.POLLIN):
                     x = os.read(self.cmd_r,1)
+                    self.proc.terminate()
                     self.running = False
                 elif (fd == self.vpr) and (evt & select.POLLIN):
                     chunk = os.read(self.vpr,1000000)
@@ -79,7 +80,8 @@ class VideoRelay( threading.Thread ):
 
                     vbuffer += chunk
                     # Wait until we have 2 complete frames 
-                    if vbuffer.count('moof') < 2:
+                    #if vbuffer.count('moof') < 2:
+                    if len(vbuffer) < 100000:
                         continue 
 
 
@@ -99,6 +101,7 @@ Videos = {}
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
     client.subscribe("client/#")
+
 def on_message(client, userdata, msg):
     try:
         _on_message(client, userdata, msg)
@@ -120,8 +123,6 @@ def _on_message(client, userdata, msg):
     """
                      
     if msg.topic == "client/describe":
-         
-
 
         req = json.loads(msg.payload.decode()) 
         reply = {
@@ -138,6 +139,13 @@ def _on_message(client, userdata, msg):
         Videos[url] = VideoRelay(url, client, req['resp_topic'])
         Videos[url].start()
 
+    elif msg.topic == "client/stop": 
+        req = json.loads(msg.payload.decode())   
+        url = req['url'] 
+
+        if url in Videos: 
+            Videos[url].stop()
+            del Videos[url]
 
 client = mqtt.Client()
 client.on_connect = on_connect
