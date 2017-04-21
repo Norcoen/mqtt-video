@@ -76,7 +76,7 @@ router using a publisher/subscriber interface.
    cd mqtt-video/client && chmod +x ./one-line-http.sh && ./one-line-http.sh
    // http://<webserver address>:8000 should be available.
 
-
+<textarea>
 --------------------------------------------------------------------------------------------
 
 Protocol (along the lines of RTSP):
@@ -90,7 +90,7 @@ Protocol (along the lines of RTSP):
                                 reply_topic: "client/describe/response"
                             }
 
-  Setup MediaSource       <--- topic: client/describe/response <-- This is mime you will have to play   
+  Setup MediaSource       <--- topic: client/describe/response <--- This is mime you will have to play   
   test mimeCodec           message {
                                 mimeCodec: 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
                                 
@@ -109,3 +109,4 @@ Protocol (along the lines of RTSP):
 
 
 
+</textarea>
