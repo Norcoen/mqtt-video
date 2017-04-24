@@ -76,7 +76,7 @@ router using a publisher/subscriber interface.
    cd mqtt-video/client && chmod +x ./one-line-http.sh && ./one-line-http.sh
    // http://<webserver address>:8000 should be available.
 
-<textarea>
+```
 --------------------------------------------------------------------------------------------
 
 Protocol (along the lines of RTSP):
@@ -109,4 +109,4 @@ Protocol (along the lines of RTSP):
 
 
 
-</textarea>
+```
