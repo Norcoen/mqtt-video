@@ -30,18 +30,19 @@ Installation:
    Get the mosquitto MQTT daemon, this is what is acting as a websocket
 router using a publisher/subscriber interface.
 
+```
    // On debian/Ubuntu
    >> apt-get install mosquitto 
 
    // for others:
    https://mosquitto.org/download/
-
+```
    Add these lines to the bottom of the /etc/mosquitto/mosquitto.conf file
-
+```
       # Activate websocket interface to the mosquitto message broker 
       listener 9001 0.0.0.0
       protocol websockets
-
+```
    Restart mosquitto to pick up the changes
    >> sudo service mosquitto restart
 
@@ -49,32 +50,34 @@ router using a publisher/subscriber interface.
    
    In order for web sockets to work you need to have COORS support turned on. You can 
    either allow COORS globally in the browser 
-
+```
       For chrome: goto chrome://flags and search for 'cross-origin' 
-
+```
    Or preferably in your web server that you are using to load the client. 
     
 3.
 
    Install the python mqtt client for the video server:
-
+```
    // On debian/Ubuntu
    apt-get install python-pip
    pip install paho-mqtt
-
+```
 4. 
 
    Run the media server:
-
+```
    cd mqtt-video/server && chmod +x ./server.py && ./server.py
-
+```
 5.
 
    For the client you can use any webserver. There is a one liner
    web server that is included:
-
+```
    cd mqtt-video/client && chmod +x ./one-line-http.sh && ./one-line-http.sh
    // http://<webserver address>:8000 should be available.
+```
+Sequence diagram of protocol
 
 ```
 --------------------------------------------------------------------------------------------
